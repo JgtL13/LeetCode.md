@@ -1,6 +1,6 @@
 import requests,json,re
 from requests_toolbelt import MultipartEncoder
-import os
+import os, pyperclip
 
 session = requests.Session()
 user_agent = r'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36'
@@ -54,8 +54,8 @@ def convert(src):
         src = re.sub(curPattern, curRepl, src)
     return src
 
-def gen_markdown(path, content, title, url, tags):
-    file = open(path, 'a', encoding="utf-8")
+def gen_markdown(content, title, url, tags):
+    #file = open(path, 'a', encoding="utf-8")
     markdowncontent = """
 ###### tags: {Tags}
 # {Title}
@@ -67,9 +67,11 @@ def gen_markdown(path, content, title, url, tags):
 
 ```
     """.format(Title = title, Url = url, Content = content, Tags = tags)
-    file.write(markdowncontent)
-    print(path)
-    file.close()
+    #file.write(markdowncontent)
+    #print(path)
+    #file.close()
+    pyperclip.copy(markdowncontent)
+    print("Copied to scrapbook!")
 
 def get_problems():
     url = "https://leetcode.com/api/problems/all/"
@@ -128,28 +130,32 @@ def get_problem_by_slug(slug):
     content = resp.json()
 
     #generate markdown file
+    #print(content['data'])
     title = content['data']['question']['questionFrontendId'] + '. ' + content['data']['question']['questionTitle']
-    #description = convert(content['data']['question']['content'])
-    description = content['data']['question']['content']
-    print(description)
-    description = convert(description)
+    description = convert(content['data']['question']['content'])
+    #description = content['data']['question']['content']
+    #print(description)
+    #description = convert(description)
     tags = ""
     for tagsName in content['data']['question']['topicTags']:
         tags += "`" + tagsName['name'] + "` "
-    base_dir = os.getcwd()
-    newfolder = os.path.join(base_dir,
-                             title.replace(". ", ".").replace(" ", "-"))
-    if not os.path.exists(newfolder):
-        os.makedirs(newfolder)
-        print("create new folder ", newfolder)
-    else:
-        print("already exist folder:", newfolder)
+    #base_dir = os.getcwd()
+    #newfolder = os.path.join(base_dir,
+    #                         title.replace(". ", ".").replace(" ", "-"))
+    #if not os.path.exists(newfolder):
+        #os.makedirs(newfolder)
+    #    print("create new folder ", newfolder)
+    #else:
+    #    print("already exist folder:", newfolder)
 
     # 生成 markdown 文件
-    filepath = os.path.join(base_dir, newfolder, "README.md")
-    gen_markdown(filepath, description, title, url, tags)
+    #filepath = os.path.join(base_dir, newfolder, "README.md")
+    #gen_markdown(filepath, description, title, url, tags)
+    gen_markdown(description, title, url, tags)
 
 def get_submissions(slug):
+    if slug.startswith("https://leetcode.com/problems/"):
+        slug = slug.replace("https://leetcode.com/problems/", "", 1).strip('/')
     url = "https://leetcode.com/graphql"
     params = {'operationName': "Submissions",
         'variables':{"offset":0, "limit":20, "lastKey": '', "questionSlug": slug},
@@ -191,7 +197,7 @@ def get_submission_by_id(submission_id):
     code = m1.groupdict()['code'] if m1 else None
     print(code)
 
-#print(login('JgtL13', 'Lkrfgklgjkfd8813'))
+print(login('JgtL13', 'Lkrfgklgjkfd8813'))
 # get_problems()
 
 #while True:
@@ -200,4 +206,4 @@ def get_submission_by_id(submission_id):
 
 get_problem_by_slug('https://leetcode.com/problems/add-two-numbers/')
 #get_submissions('https://leetcode.com/problems/add-two-numbers/')
-#get_submission_by_id('')
+#get_submission_by_id('711949935')
