@@ -1,0 +1,23 @@
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+<!-- Search Bar -->
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-  scale=1">
+        <link rel="stylesheet" 
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-
+        awesome/4.7.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="/static/search.css">
+    </head>
+    <body>
+        <center><img src="/static/perhaps.jpg" alt="perhaps" width="720" height="540"><center>
+        <h1><center>牛乳產量預測系統</center></h1>
+        <form class="search" method="post" action="/search"
+         style="margin:auto;max-width:600px">
+            <center><input type="text" placeholder="依照編號搜尋" name="input"><center>
+            <button type="search" class="btn btn-primary" onclick="$('#loading').show();">搜尋
+            </button>
+            <center><div id="loading" style="display:none;"><img src="/static/loading.gif" alt="" width="128" height="128"/><center>找資料中...<center></div><center>
+        <p></p>
+    </body>
+</html>
