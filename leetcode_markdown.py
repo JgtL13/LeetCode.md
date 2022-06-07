@@ -1,9 +1,18 @@
 import requests,json,re
 from requests_toolbelt import MultipartEncoder
+import os
 
 session = requests.Session()
 user_agent = r'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36'
 
+Remove = ["</?p>", "</?ul>", "</?ol>", "</li>", "</sup>"]
+Replace = [["&nbsp;", " "], ["&quot;", '"'], ["&lt;", "<"], ["&gt;", ">"],
+           ["&le;", "≤"], ["&ge;", "≥"], ["<sup>", "^"], ["&#39", "'"],
+           ["&times;", "x"], ["&ldquo;", "“"], ["&rdquo;", "”"],
+           [" *<strong> *", " **"], [" *</strong> *", "** "],
+           [" *<code> *", " `"], [" *</code> *", "` "], ["<pre>", "```\n"],
+           ["</pre>", "\n```\n"], ["<em> *</em>", ""], [" *<em> *", " *"],
+           [" *</em> *", "* "], ["</?div.*?>", ""], ["	*</?li>", "- "]]
 
 def login(username, password):
     url = 'https://leetcode.com'
@@ -29,10 +38,43 @@ def login(username, password):
     is_login = session.cookies.get('LEETCODE_SESSION') != None
     return is_login
 
+def convert(src):
+    # pre内部预处理
+    def remove_label_in_pre(matched):
+        tmp = matched.group()
+        tmp = re.sub("<[^>p]*>", "", tmp)  # 不匹配>与p
+        return tmp
+
+    src = re.sub("<pre>[\s\S]*?</pre>", remove_label_in_pre,
+                 src)  # 注意此处非贪心匹配，因为可能有多个示例
+    # 可以直接删除的标签
+    for curPattern in Remove:
+        src = re.sub(curPattern, "", src)
+    # 需要替换内容的标签
+    for curPattern, curRepl in Replace:
+        src = re.sub(curPattern, curRepl, src)
+    return src
+
+def gen_markdown(path, content, title, url, tags):
+    file = open(path, 'a', encoding="utf-8")
+    markdowncontent = """
+###### tags: {Tags}
+# {Title}
+## Description
+{Content}
+
+## Solution
+```python=
+
+```
+>
+    """.format(Title = title, Url = url, Content = content, Tags = tags)
+    file.write(markdowncontent)
+    print(path)
+    file.close()
+
 def get_problems():
     url = "https://leetcode.com/api/problems/all/"
-
-    
     headers = {'User-Agent': user_agent, 'Connection': 'keep-alive'}
     resp = session.get(url, headers = headers, timeout = 10)
        
@@ -85,9 +127,28 @@ def get_problem_by_slug(slug):
     resp = session.post(url, data = json_data, headers = headers, timeout = 10)
     content = resp.json()
 
-    # 题目详细信息
-    question = content['data']['question']
-    print(question)
+    #generate markdown file
+    title = content['data']['question']['questionFrontendId'] + '. ' + content['data']['question']['questionTitle']
+    description = convert(content['data']['question']['content'])
+    tags = ""
+    for tagsName in content['data']['question']['topicTags']:
+        tags += "`" + tagsName['name'] + "` "
+        #tags.append(tagsName['name'])
+        #print(tagsName['name'])
+    print(tags)
+
+    base_dir = os.getcwd()
+    newfolder = os.path.join(base_dir,
+                             title.replace(". ", ".").replace(" ", "-"))
+    if not os.path.exists(newfolder):
+        os.makedirs(newfolder)
+        print("create new folder ", newfolder)
+    else:
+        print("already exist folder:", newfolder)
+
+    # 生成 markdown 文件
+    filepath = os.path.join(base_dir, newfolder, "README.md")
+    gen_markdown(filepath, description, title, url, tags)
 
 def get_submissions(slug):
     url = "https://leetcode.com/graphql"
