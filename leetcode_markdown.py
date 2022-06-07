@@ -10,8 +10,8 @@ Replace = [["&nbsp;", " "], ["&quot;", '"'], ["&lt;", "<"], ["&gt;", ">"],
            ["&le;", "≤"], ["&ge;", "≥"], ["<sup>", "^"], ["&#39", "'"],
            ["&times;", "x"], ["&ldquo;", "“"], ["&rdquo;", "”"],
            [" *<strong> *", " **"], [" *</strong> *", "** "],
-           [" *<code> *", " `"], [" *</code> *", "` "], ["<pre>", "```\n"],
-           ["</pre>", "\n```\n"], ["<em> *</em>", ""], [" *<em> *", " *"],
+           [" *<code> *", " `"], [" *</code> *", "` "], ["<pre>", "```"],
+           ["</pre>", "```"], ["<em> *</em>", ""], [" *<em> *", " *"],
            [" *</em> *", "* "], ["</?div.*?>", ""], ["	*</?li>", "- "]]
 
 def login(username, password):
@@ -29,8 +29,7 @@ def login(username, password):
         'password':password,
         'next': 'problems'
     }
-    headers = {'User-Agent': user_agent, 'Connection': 'keep-alive', 'Referer':         'https://leetcode.com/accounts/login/',
-        "origin": "https://leetcode.com"}
+    headers = {'User-Agent': user_agent, 'Connection': 'keep-alive', 'Referer': 'https://leetcode.com/accounts/login/', "origin": "https://leetcode.com"}
     m = MultipartEncoder(params_data)   
 
     headers['Content-Type'] = m.content_type
@@ -62,12 +61,11 @@ def gen_markdown(path, content, title, url, tags):
 # {Title}
 ## Description
 {Content}
-
 ## Solution
+
 ```python=
 
 ```
->
     """.format(Title = title, Url = url, Content = content, Tags = tags)
     file.write(markdowncontent)
     print(path)
@@ -97,6 +95,8 @@ def get_problems():
         print(question_slug)      
 
 def get_problem_by_slug(slug):
+    if slug.startswith("https://leetcode.com/problems/"):
+        slug = slug.replace("https://leetcode.com/problems/", "", 1).strip('/')
     url = "https://leetcode.com/graphql"
     params = {'operationName': "getQuestionDetail",
         'variables': {'titleSlug': slug},
@@ -129,14 +129,13 @@ def get_problem_by_slug(slug):
 
     #generate markdown file
     title = content['data']['question']['questionFrontendId'] + '. ' + content['data']['question']['questionTitle']
-    description = convert(content['data']['question']['content'])
+    #description = convert(content['data']['question']['content'])
+    description = content['data']['question']['content']
+    print(description)
+    description = convert(description)
     tags = ""
     for tagsName in content['data']['question']['topicTags']:
         tags += "`" + tagsName['name'] + "` "
-        #tags.append(tagsName['name'])
-        #print(tagsName['name'])
-    print(tags)
-
     base_dir = os.getcwd()
     newfolder = os.path.join(base_dir,
                              title.replace(". ", ".").replace(" ", "-"))
@@ -192,8 +191,13 @@ def get_submission_by_id(submission_id):
     code = m1.groupdict()['code'] if m1 else None
     print(code)
 
-#print(login('u', 'p'))
+#print(login('JgtL13', 'Lkrfgklgjkfd8813'))
 # get_problems()
-get_problem_by_slug('two-sum')
-#get_submissions('two-sum')
+
+#while True:
+#    url = input("LeetCode URL: ")
+#    get_problem_by_slug(url)
+
+get_problem_by_slug('https://leetcode.com/problems/add-two-numbers/')
+#get_submissions('https://leetcode.com/problems/add-two-numbers/')
 #get_submission_by_id('')
