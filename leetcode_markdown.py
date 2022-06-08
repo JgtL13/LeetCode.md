@@ -89,11 +89,12 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-    return render_template('convert.html')
+    return render_template('home.html')
 
-@app.route('/search', methods = ['POST'])
+@app.route('/convert', methods = ['POST'])
 def search():
     get_problem_by_slug('https://leetcode.com/problems/add-two-numbers/')
+    return render_template('home.html')
     
 if __name__ == '__main__':
     app.run(debug=True)
