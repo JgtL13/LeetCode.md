@@ -103,7 +103,7 @@ window = tk.Tk()
 window.wm_attributes("-topmost", 1)
 
 window.title('LeetCode.md')
-w = 300
+w = 250
 h = 100
 ws = window.winfo_screenwidth()
 hs = window.winfo_screenheight()
