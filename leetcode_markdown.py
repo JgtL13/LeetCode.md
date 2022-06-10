@@ -1,9 +1,11 @@
 import requests,json,re
 import pyperclip
-from flask import Flask, request, render_template
+import tkinter as tk
+import pyautogui
+
 
 session = requests.Session()
-user_agent = r'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36'
+user_agent = r'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.63 Safari/537.36'
 
 Remove = ["</?p>", "</?ul>", "</?ol>", "</li>", "</sup>"]
 Replace = [["&nbsp;", " "], ["&quot;", '"'], ["&lt;", "<"], ["&gt;", ">"],
@@ -21,15 +23,14 @@ def convert(src):
         return tmp
 
     src = re.sub("<pre>[\s\S]*?</pre>", remove_label_in_pre, src)
-    for curPattern in Remove:
-        src = re.sub(curPattern, "", src)
-    for curPattern, curRepl in Replace:
-        src = re.sub(curPattern, curRepl, src)
+    for i in range(len(Remove)):
+        src = re.sub(Remove[i], "", src)
+    for i in range(len(Replace)):
+        src = re.sub(Replace[i][0], Replace[i][1], src)
     return src
 
 def gen_markdown(content, title, url, tags):
-    markdowncontent = """
-###### tags: {Tags}
+    markdowncontent = """###### tags: {Tags}
 # {Title}
 ## Description
 {Content}
@@ -37,13 +38,11 @@ def gen_markdown(content, title, url, tags):
 
 ```python=
 
-```
-    """.format(Title = title, Url = url, Content = content, Tags = tags)
+```""".format(Title = title, Url = url, Content = content, Tags = tags)
     pyperclip.copy(markdowncontent)
     print("Copied to scrapbook!")   
 
 def get_problem_by_slug(slug):
-    print("here")
     if slug.startswith("https://leetcode.com/problems/"):
         slug = slug.replace("https://leetcode.com/problems/", "", 1).strip('/')
     url = "https://leetcode.com/graphql"
@@ -61,8 +60,8 @@ def get_problem_by_slug(slug):
                 similarQuestions
                 categoryTitle
                 topicTags {
-                        name
-                        slug
+                    name
+                    slug
                 }
             }
         }'''
@@ -85,16 +84,37 @@ def get_problem_by_slug(slug):
     gen_markdown(description, title, url, tags)
 
 
-app = Flask(__name__)
+def scrape():
+    pyautogui.click(0, 200) # a random click for focusing the browser
+    pyautogui.press('f6')
+    pyautogui.hotkey('ctrl', 'c')
+    url = pyperclip.paste()
+    if url.startswith("https://leetcode.com"):
+        get_problem_by_slug(url)
+        label = tk.Label(window, text = 'Problem copied to clipboard!')
+        label.pack()
+        label.after(2000, label.destroy)
+    else:
+        label = tk.Label(window, text = 'There are no problems on this page!')
+        label.pack()
+        label.after(2000, label.destroy)
 
-@app.route('/')
-def index():
-    return render_template('home.html')
+window = tk.Tk()
+window.wm_attributes("-topmost", 1)
 
-@app.route('/convert', methods = ['POST'])
-def search():
-    get_problem_by_slug('https://leetcode.com/problems/add-two-numbers/')
-    return render_template('home.html')
-    
-if __name__ == '__main__':
-    app.run(debug=True)
+window.title('LeetCode.md')
+w = 300
+h = 100
+ws = window.winfo_screenwidth()
+hs = window.winfo_screenheight()
+x = ws - w - 50
+y = hs - h - 100
+
+window.geometry('%dx%d+%d+%d' % (w, h, x, y))
+label = tk.Label(window, text = '\n')
+label.pack()
+button = tk.Button(window,
+                   text = 'Scrape', 
+                   command = scrape)
+button.pack()
+window.mainloop()
