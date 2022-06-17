@@ -89,15 +89,17 @@ def scrape():
     pyautogui.press('f6')
     pyautogui.hotkey('ctrl', 'c')
     url = pyperclip.paste()
-    if url.startswith("https://leetcode.com"):
-        get_problem_by_slug(url)
+    if url.startswith("https://leetcode.com/problems/"):
+        urlSplit = url.split('/')
+        get_problem_by_slug("https://leetcode.com/problems/" + urlSplit[4])
         label = tk.Label(window, text = 'Problem copied to clipboard!')
         label.pack()
         label.after(2000, label.destroy)
-    else:
-        label = tk.Label(window, text = 'There are no problems on this page!')
-        label.pack()
-        label.after(2000, label.destroy)
+        return
+    label = tk.Label(window, text = 'Invalid url!')
+    label.pack()
+    label.after(2000, label.destroy)
+    return
 
 window = tk.Tk()
 window.wm_attributes("-topmost", 1)
