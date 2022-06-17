@@ -29,7 +29,7 @@ def convert(src):
         src = re.sub(Replace[i][0], Replace[i][1], src)
     return src
 
-def gen_markdown(content, title, url, tags):
+def gen_markdown(content, title, url, tags, code):
     markdowncontent = """###### tags: {Tags}
 # {Title}
 ## Description
@@ -37,12 +37,11 @@ def gen_markdown(content, title, url, tags):
 ## Solution
 
 ```python=
-
-```""".format(Title = title, Url = url, Content = content, Tags = tags)
+{Code}
+```""".format(Title = title, Url = url, Content = content, Tags = tags, Code = code)
     pyperclip.copy(markdowncontent)
-    print("Copied to scrapbook!")   
 
-def get_problem_by_slug(slug):
+def get_problem_by_slug(slug, code):
     if slug.startswith("https://leetcode.com/problems/"):
         slug = slug.replace("https://leetcode.com/problems/", "", 1).strip('/')
     url = "https://leetcode.com/graphql"
@@ -81,17 +80,29 @@ def get_problem_by_slug(slug):
     tags = ""
     for tagsName in content['data']['question']['topicTags']:
         tags += "`" + tagsName['name'] + "` "
-    gen_markdown(description, title, url, tags)
+    gen_markdown(description, title, url, tags, code)
 
 
 def scrape():
-    pyautogui.click(0, 200) # a random click for focusing the browser
+    pyautogui.click(1600, 400) # a random click for focusing the browser
+    pyautogui.hotkey('ctrl', 'a')
+    pyautogui.hotkey('ctrl', 'c')
+    code = pyperclip.paste()
     pyautogui.press('f6')
     pyautogui.hotkey('ctrl', 'c')
     url = pyperclip.paste()
     if url.startswith("https://leetcode.com/problems/"):
         urlSplit = url.split('/')
-        get_problem_by_slug("https://leetcode.com/problems/" + urlSplit[4])
+        if urlSplit[5] == "discuss":
+            code = ""
+            label = tk.Label(window, text = 'No code on this page!')
+            label.pack()
+            label.after(2000, label.destroy)
+        else:
+            label = tk.Label(window, text = 'Code copied to clipboard!')
+            label.pack()
+            label.after(2000, label.destroy)
+        get_problem_by_slug("https://leetcode.com/problems/" + urlSplit[4], code)
         label = tk.Label(window, text = 'Problem copied to clipboard!')
         label.pack()
         label.after(2000, label.destroy)
@@ -110,7 +121,7 @@ h = 100
 ws = window.winfo_screenwidth()
 hs = window.winfo_screenheight()
 x = ws - w - 50
-y = hs - h - 150
+y = hs - h - 180
 
 window.geometry('%dx%d+%d+%d' % (w, h, x, y))
 label = tk.Label(window, text = '\n')
