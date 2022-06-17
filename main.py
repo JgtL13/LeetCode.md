@@ -108,7 +108,7 @@ h = 100
 ws = window.winfo_screenwidth()
 hs = window.winfo_screenheight()
 x = ws - w - 50
-y = hs - h - 100
+y = hs - h - 150
 
 window.geometry('%dx%d+%d+%d' % (w, h, x, y))
 label = tk.Label(window, text = '\n')
