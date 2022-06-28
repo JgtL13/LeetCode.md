@@ -84,10 +84,7 @@ def get_problem_by_slug(slug, code):
 
 
 def scrape():
-    pyautogui.click(1600, 400) # a random click for focusing the browser
-    pyautogui.hotkey('ctrl', 'a')
-    pyautogui.hotkey('ctrl', 'c')
-    code = pyperclip.paste()
+    pyautogui.hotkey('alt', 'tab')
     pyautogui.press('f6')
     pyautogui.hotkey('ctrl', 'c')
     url = pyperclip.paste()
@@ -99,6 +96,10 @@ def scrape():
             label.pack()
             label.after(2000, label.destroy)
         else:
+            pyautogui.click(1600, 400) # a random click for focusing the browser
+            pyautogui.hotkey('ctrl', 'a')
+            pyautogui.hotkey('ctrl', 'c')
+            code = pyperclip.paste()
             label = tk.Label(window, text = 'Code copied to clipboard!')
             label.pack()
             label.after(2000, label.destroy)
